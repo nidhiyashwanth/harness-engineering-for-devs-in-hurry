@@ -1,0 +1,34 @@
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+id_rsa
+id_ed25519
+*secret*
+*secrets*
+*token*
+*credential*
+
+# Dependency and build folders
+node_modules/
+dist/
+build/
+.cache/
+
+# Local verification artifacts
+.playwright-mcp/
+work/*.png
+work/*.log
+*.log
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+*.swp
+*.tmp
