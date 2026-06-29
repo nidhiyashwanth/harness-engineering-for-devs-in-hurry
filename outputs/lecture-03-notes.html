@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Concise notes on making the repository the system of record for AI agents.">
+  <link rel="icon" href="data:,">
+  <title>Harness Notes - Making the Repository the Single Source of Truth</title>
+  <style>
+    :root{--paper:#f7f4ed;--ink:#102f3b;--muted:#5d696b;--accent:#c9442b;--green:#2b7a57;--deep:#073b49;--rule:#9ea5a2;--soft:#eee8dc;--serif:Georgia,'Times New Roman',serif;--sans:Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;--mono:'SFMono-Regular',Consolas,monospace}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.55}a{color:inherit}.wrap{width:min(1160px,calc(100% - 40px));margin:auto}.site-head{position:sticky;top:0;z-index:20;background:rgba(247,244,237,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--rule)}.head-in{height:66px;display:flex;align-items:center;gap:34px}.brand{font:700 22px var(--serif);text-decoration:none;margin-right:auto}.nav{display:flex;gap:25px}.nav a{font-size:13px;text-decoration:none;color:var(--muted)}.nav a:hover{color:var(--accent)}.theme{border:1px solid var(--ink);background:transparent;border-radius:99px;width:48px;height:25px;cursor:pointer;position:relative}.theme:after{content:"";position:absolute;width:17px;height:17px;border-radius:50%;background:var(--ink);right:3px;top:3px;transition:.2s}.theme span{display:none}h1,h2,h3{font-family:var(--serif);margin:0;letter-spacing:-.025em}section{padding:70px 0;border-top:1px solid var(--rule);scroll-margin-top:65px}code{font-family:var(--mono);font-size:.92em}
+    body.dark{--paper:#071f27;--ink:#f4ead9;--muted:#b8c2bf;--accent:#ff7154;--green:#7fc89f;--deep:#041218;--rule:#49616a;--soft:#0b2a34}.dark .site-head{background:rgba(7,31,39,.93)}.dark .theme:after{right:26px;background:var(--accent)}
+    .hero{display:grid;grid-template-columns:1fr .96fr;gap:64px;align-items:center;padding:72px 0 82px}.lecture{font:700 18px var(--serif);color:var(--accent);margin-bottom:12px}h1{font-size:clamp(50px,6.2vw,84px);line-height:.96}.dek{font:400 clamp(19px,2vw,25px) var(--serif);max-width:670px;color:var(--muted);margin:25px 0}.source{font-size:12px;color:var(--muted)}.source a{color:var(--accent);text-underline-offset:3px}
+    .map{border:1px solid var(--ink);padding:24px;background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,0))}.map-head{display:flex;justify-content:space-between;border-bottom:1px solid var(--rule);padding-bottom:12px;margin-bottom:18px;font:700 12px var(--mono);text-transform:uppercase;color:var(--muted)}.outside{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:18px}.outside span{border:1px dashed var(--rule);padding:10px;text-align:center;font:700 11px var(--mono);color:var(--muted)}.repo-box{border:1px solid var(--ink);padding:18px;text-align:center;font:700 14px var(--mono);color:var(--accent)}.repo-flow{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);margin-top:18px}.repo-flow span{background:var(--paper);padding:14px 8px;text-align:center;font:700 12px var(--mono);position:relative}.repo-flow span:not(:last-child):after{content:"->";position:absolute;right:-17px;color:var(--accent);z-index:2}
+    .section-title{font-size:clamp(36px,4vw,56px);line-height:1.02}.lead{font:19px var(--serif);color:var(--muted);max-width:720px}.principles{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:34px}.principle{border-top:3px solid var(--accent);padding-top:14px}.principle h3{font-size:23px;margin-bottom:8px}.principle p{margin:0;color:var(--muted)}
+    .questions{display:grid;grid-template-columns:.75fr 1.25fr;gap:58px}.q-list{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule)}.q{display:grid;grid-template-columns:1.05fr .95fr;background:var(--paper);padding:18px;gap:18px}.q b{font:700 15px var(--serif)}.q span{font:700 13px var(--mono);color:var(--accent)}
+    .concepts{display:grid;grid-template-columns:.75fr 1.25fr;gap:56px}.concept-list{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule)}.concept{display:grid;grid-template-columns:190px 1fr;background:var(--paper);padding:18px}.concept b{font:700 15px var(--serif)}.concept span{color:var(--muted)}
+    .structure{display:grid;grid-template-columns:.7fr 1.3fr;gap:58px}.tree{background:var(--deep);color:#f7f4ed;padding:24px;font-family:var(--mono);font-size:13px;line-height:1.55;overflow:auto}.tree .dim{color:#9fc0bd}.tree .ok{color:#9ee0ad}
+    .acid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);margin-top:34px}.acid-card{background:var(--paper);padding:22px}.acid-card h3{font-size:24px;margin-bottom:8px}.acid-card p{margin:0;color:var(--muted)}
+    .case{display:grid;grid-template-columns:1fr 1fr;gap:52px}.panel{border:1px solid var(--ink);padding:26px;background:rgba(255,255,255,.12)}.panel h3{font-size:28px;margin-bottom:15px}.panel p{color:var(--muted);margin:0}.steps{counter-reset:item}.step{counter-increment:item;display:grid;grid-template-columns:44px 1fr;gap:16px;border-top:1px solid var(--rule);padding:16px 0}.step:before{content:counter(item,decimal-leading-zero);font:700 13px var(--mono);color:var(--accent)}.step p{margin:0;color:var(--muted)}
+    .takeaway{display:flex;align-items:baseline;gap:28px;padding:48px 0}.take-label{font:700 13px var(--mono);color:var(--accent);padding-right:28px;border-right:1px solid var(--rule)}.takeaway h2{font-size:clamp(32px,4vw,52px)}.series-nav{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--rule)}.series-link{padding:24px 0;text-decoration:none;display:flex;gap:14px;align-items:center}.series-link:last-child{justify-content:flex-end;text-align:right}.series-link+.series-link{border-left:1px solid var(--rule);padding-left:30px}.series-link small{display:block;color:var(--muted);font:11px var(--mono);text-transform:uppercase}.series-link b{font:700 17px var(--serif)}.disabled{opacity:.48;pointer-events:none}.footer{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;padding:0 0 28px}.backtop{text-decoration:none}
+    @media(max-width:900px){.nav{display:none}.hero,.questions,.concepts,.structure,.case{grid-template-columns:1fr}.principles,.acid{grid-template-columns:1fr 1fr}.outside{grid-template-columns:1fr 1fr}}
+    @media(max-width:560px){.wrap{width:min(100% - 28px,1160px)}.head-in{height:58px}.brand{font-size:19px}.hero{padding-top:48px}.outside,.repo-flow,.principles,.q,.concept,.acid{grid-template-columns:1fr}.repo-flow span:after{display:none}.takeaway{display:block}.take-label{display:inline-block;margin-bottom:15px}.series-nav{grid-template-columns:1fr}.series-link+.series-link{border-left:0;border-top:1px solid var(--rule);padding-left:0}.series-link:last-child{justify-content:flex-start;text-align:left}.footer{display:block}.footer a{display:block;margin-top:8px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+  </style>
+</head>
+<body>
+  <header class="site-head">
+    <div class="wrap head-in">
+      <a class="brand" href="#top">Harness Notes</a>
+      <nav class="nav" aria-label="Sections">
+        <a href="#map">Map</a><a href="#fresh">Fresh Test</a><a href="#concepts">Concepts</a><a href="#acid">ACID</a><a href="#case">Case</a>
+      </nav>
+      <button class="theme" id="theme" aria-label="Toggle dark theme"><span>Theme</span></button>
+    </div>
+  </header>
+  <main id="top">
+    <div class="wrap hero">
+      <div>
+        <div class="lecture">Lecture 03</div>
+        <h1>Making the repository the single source of truth</h1>
+        <p class="dek">For an agent, project knowledge outside the repository does not exist. The repo must become the map, spec, state, and handoff.</p>
+        <p class="source">Notes from <a href="https://walkinglabs.github.io/learn-harness-engineering/en/lectures/lecture-03-why-the-repository-must-become-the-system-of-record/">Learn Harness Engineering - Lecture 03</a></p>
+      </div>
+      <div class="map" aria-label="Knowledge visibility map">
+        <div class="map-head"><span>knowledge_visibility</span><span>repo as spec</span></div>
+        <div class="outside"><span>Slack</span><span>Confluence</span><span>Jira</span><span>Engineers' heads</span></div>
+        <div class="repo-box">Write into repo files: AGENTS.md / ARCHITECTURE.md / PROGRESS.md</div>
+        <div class="repo-flow"><span>Repository files</span><span>Fresh session reads</span><span>Agent can act</span></div>
+      </div>
+    </div>
+    <section id="map"><div class="wrap"><h2 class="section-title">The agent only sees three inputs.</h2><p class="lead">System prompts and task descriptions, repository file contents, and tool execution output. Slack history, Confluence pages, Jira context, and hallway decisions are invisible unless they are written into the repo.</p><div class="principles"><div class="principle"><h3>Near code</h3><p>API constraints belong next to API code, not buried in a global archive.</p></div><div class="principle"><h3>Entry file</h3><p><code>AGENTS.md</code> should answer what this is, how to run it, and how to verify it.</p></div><div class="principle"><h3>Minimal complete</h3><p>Keep only decision-useful knowledge, but answer every fresh-session question.</p></div><div class="principle"><h3>Updated with code</h3><p>Docs decay unless knowledge updates are tied to implementation changes.</p></div></div></div></section>
+    <section id="fresh"><div class="wrap questions"><div><h2 class="section-title">Run the fresh session test.</h2><p class="lead">Open a new session with only repository contents. If it cannot answer these five questions, your map has blank spots and the agent must guess.</p></div><div class="q-list"><div class="q"><b>What is this system?</b><span>AGENTS.md / README</span></div><div class="q"><b>How is it organized?</b><span>ARCHITECTURE.md</span></div><div class="q"><b>How do I run it?</b><span>Makefile / scripts</span></div><div class="q"><b>How do I verify it?</b><span>test / lint / check</span></div><div class="q"><b>Where are we now?</b><span>PROGRESS.md / feature list</span></div></div></div></section>
+    <section id="concepts"><div class="wrap concepts"><div><h2 class="section-title">Core concepts</h2><p class="lead">A repository becomes useful to agents when it lowers discovery cost and survives session boundaries.</p></div><div class="concept-list"><div class="concept"><b>Visibility gap</b><span>Project knowledge outside the repo. The larger the gap, the higher the failure rate.</span></div><div class="concept"><b>System of record</b><span>The repo is authoritative for decisions, constraints, execution state, and verification standards.</span></div><div class="concept"><b>Fresh session test</b><span>The five-question test for whether a new agent can start work without human context.</span></div><div class="concept"><b>Discovery cost</b><span>Context budget burned to find one key fact. Hidden knowledge leaves less budget for work.</span></div><div class="concept"><b>Knowledge decay</b><span>Stale docs are worse than missing docs because they confidently send the agent the wrong way.</span></div></div></div></section>
+    <section><div class="wrap structure"><div><h2 class="section-title">Draw the map in the repo.</h2><p class="lead">A 50-line module-local architecture file beats a 500-page external document the agent cannot see or trust.</p></div><pre class="tree"><code>project/
+├── <span class="ok">AGENTS.md</span>       <span class="dim"># overview, commands, hard constraints</span>
+├── src/
+│   ├── api/
+│   │   └── <span class="ok">ARCHITECTURE.md</span>
+│   └── db/
+│       └── <span class="ok">CONSTRAINTS.md</span>
+├── <span class="ok">PROGRESS.md</span>     <span class="dim"># done / active / blocked</span>
+└── <span class="ok">Makefile</span>        <span class="dim"># setup, test, lint, check</span></code></pre></div></section>
+    <section id="acid"><div class="wrap"><h2 class="section-title">Manage agent state with ACID thinking.</h2><p class="lead">The database analogy gives a practical standard for cross-session reliability.</p><div class="acid"><div class="acid-card"><h3>Atomicity</h3><p>One logical operation becomes one commit; half-done work rolls back or stays uncommitted.</p></div><div class="acid-card"><h3>Consistency</h3><p>Tests and lint define consistent state; inconsistent states do not get committed.</p></div><div class="acid-card"><h3>Isolation</h3><p>Concurrent agents avoid racing through branches or separated progress files.</p></div><div class="acid-card"><h3>Durability</h3><p>Knowledge that must survive sessions lives in git-tracked files.</p></div></div></div></section>
+    <section id="case"><div class="wrap case"><div class="panel"><h3>Before</h3><p>A 30-microservice e-commerce platform kept architecture decisions in Confluence, Slack, senior engineers' heads, and scattered comments. After agents arrived, 70% of tasks required human intervention.</p></div><div><h2 class="section-title">Transformation steps</h2><div class="steps"><div class="step"><p>Create root <code>AGENTS.md</code> with overview, stack versions, and hard constraints.</p></div><div class="step"><p>Add service-local <code>ARCHITECTURE.md</code> files for responsibilities, interfaces, and dependencies.</p></div><div class="step"><p>Create centralized <code>CONSTRAINTS.md</code> with explicit MUST / MUST NOT language.</p></div><div class="step"><p>Add <code>PROGRESS.md</code> in each service so fresh sessions know current state.</p></div></div></div></div></section>
+    <div class="wrap"><div class="takeaway"><span class="take-label">TAKEAWAY</span><h2>Knowledge not in the repository does not exist for the agent. Draw the map where the agent can read it.</h2></div><nav class="series-nav" aria-label="Lecture navigation"><a class="series-link" href="lecture-02-notes.html"><span aria-hidden="true">&lt;-</span><span><small>Previous</small><b>Lecture 02 - Harness model</b></span></a><a class="series-link" href="lecture-04-notes.html"><span><small>Next</small><b>Lecture 04 - Split instructions</b></span><span aria-hidden="true">-&gt;</span></a></nav></div>
+  </main>
+  <footer class="wrap footer"><span>Concise study notes - Lecture 03</span><a class="backtop" href="#top">Back to top ^</a></footer>
+  <script>
+    const b=document.getElementById('theme');const key='harness-notes-theme';
+    if(localStorage.getItem(key)==='dark')document.body.classList.add('dark');
+    b.addEventListener('click',()=>{document.body.classList.toggle('dark');localStorage.setItem(key,document.body.classList.contains('dark')?'dark':'light')});
+  </script>
+</body>
+</html>

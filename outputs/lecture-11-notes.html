@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Concise notes on making agent runtime and process decisions observable inside the harness.">
+  <link rel="icon" href="data:,">
+  <title>Harness Notes - Making the Agent's Runtime Observable</title>
+  <style>
+    :root{--paper:#f7f4ed;--ink:#102f3b;--muted:#5d696b;--accent:#c9442b;--green:#2b7a57;--deep:#073b49;--rule:#9ea5a2;--soft:#eee8dc;--serif:Georgia,'Times New Roman',serif;--sans:Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;--mono:'SFMono-Regular',Consolas,monospace}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.55}a{color:inherit}.wrap{width:min(1160px,calc(100% - 40px));margin:auto}.site-head{position:sticky;top:0;z-index:20;background:rgba(247,244,237,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--rule)}.head-in{height:66px;display:flex;align-items:center;gap:34px}.brand{font:700 22px var(--serif);text-decoration:none;margin-right:auto}.nav{display:flex;gap:25px}.nav a{font-size:13px;text-decoration:none;color:var(--muted)}.nav a:hover{color:var(--accent)}.theme{border:1px solid var(--ink);background:transparent;border-radius:99px;width:48px;height:25px;cursor:pointer;position:relative}.theme:after{content:"";position:absolute;width:17px;height:17px;border-radius:50%;background:var(--ink);right:3px;top:3px;transition:.2s}.theme span{display:none}h1,h2,h3{font-family:var(--serif);margin:0;letter-spacing:-.025em}section{padding:70px 0;border-top:1px solid var(--rule);scroll-margin-top:65px}code{font-family:var(--mono);font-size:.92em}
+    body.dark{--paper:#071f27;--ink:#f4ead9;--muted:#b8c2bf;--accent:#ff7154;--green:#7fc89f;--deep:#041218;--rule:#49616a;--soft:#0b2a34}.dark .site-head{background:rgba(7,31,39,.93)}.dark .theme:after{right:26px;background:var(--accent)}
+    .hero{display:grid;grid-template-columns:1fr .96fr;gap:64px;align-items:center;padding:72px 0 82px}.lecture{font:700 18px var(--serif);color:var(--accent);margin-bottom:12px}h1{font-size:clamp(50px,6.2vw,84px);line-height:.96}.dek{font:400 clamp(19px,2vw,25px) var(--serif);max-width:670px;color:var(--muted);margin:25px 0}.source{font-size:12px;color:var(--muted)}.source a{color:var(--accent);text-underline-offset:3px}
+    .trace{border:1px solid var(--ink);padding:24px;background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,0))}.trace-head{display:flex;justify-content:space-between;border-bottom:1px solid var(--rule);padding-bottom:12px;margin-bottom:18px;font:700 12px var(--mono);text-transform:uppercase;color:var(--muted)}.trace-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--rule);border:1px solid var(--rule)}.trace-cell{background:var(--paper);padding:18px}.trace-cell b{font:700 13px var(--mono);color:var(--accent)}.trace-cell p{margin:8px 0 0;color:var(--muted)}.trace-flow{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);margin-top:18px}.trace-flow span{background:var(--paper);padding:14px 8px;text-align:center;font:700 12px var(--mono);position:relative}.trace-flow span:not(:last-child):after{content:"->";position:absolute;right:-17px;color:var(--accent);z-index:2}
+    .section-title{font-size:clamp(36px,4vw,56px);line-height:1.02}.lead{font:19px var(--serif);color:var(--muted);max-width:720px}.problem-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:34px}.problem{border-top:3px solid var(--accent);padding-top:14px}.problem h3{font-size:23px;margin-bottom:8px}.problem p{margin:0;color:var(--muted)}
+    .compare{display:grid;grid-template-columns:1fr auto 1fr;gap:30px;align-items:stretch;margin-top:38px}.panel{border:1px solid var(--ink);padding:26px;background:rgba(255,255,255,.12)}.panel h3{font-size:28px;margin-bottom:15px}.panel p{color:var(--muted);margin:0 0 15px}.vs{display:grid;place-items:center;font:700 18px var(--serif);color:var(--accent)}.quote-note{border-left:4px solid var(--accent);padding:14px 18px;background:var(--soft);font-family:var(--mono);font-size:13px;color:var(--muted)}
+    .layers{display:grid;grid-template-columns:.72fr 1.28fr;gap:58px}.layer-map{display:grid;gap:14px}.layer{display:grid;grid-template-columns:150px 1fr;border:1px solid var(--ink);padding:20px;gap:18px}.layer b{font:700 14px var(--mono);color:var(--accent)}.layer h3{font-size:25px;margin-bottom:6px}.layer p{margin:0;color:var(--muted)}.loop-line{text-align:center;font:700 13px var(--mono);letter-spacing:.06em;color:var(--muted);margin-top:16px}
+    .concepts{display:grid;grid-template-columns:.75fr 1.25fr;gap:56px}.concept-list{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule)}.concept{display:grid;grid-template-columns:180px 1fr;background:var(--paper);padding:18px}.concept b{font:700 15px var(--serif)}.concept span{color:var(--muted)}
+    .why{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:34px}.why-card{border:1px solid var(--ink);padding:22px}.why-card h3{font-size:24px;margin-bottom:8px}.why-card p{margin:0;color:var(--muted)}
+    .how{display:grid;grid-template-columns:1fr 1fr;gap:52px}.rules{counter-reset:item}.rule{counter-increment:item;display:grid;grid-template-columns:44px 1fr;gap:16px;border-top:1px solid var(--rule);padding:18px 0}.rule:before{content:counter(item,decimal-leading-zero);font:700 13px var(--mono);color:var(--accent)}.rule h3{font-size:24px}.rule p{margin:5px 0 0;color:var(--muted)}.snippet{background:var(--deep);color:#f7f4ed;padding:24px;font-family:var(--mono);font-size:13px;overflow:auto;line-height:1.45}.snippet .dim{color:#9fc0bd}.snippet .ok{color:#9ee0ad}.snippet .warn{color:#ff987f}
+    .rubric{width:100%;border-collapse:collapse;margin-top:22px;font-size:14px}.rubric th,.rubric td{border-top:1px solid var(--rule);padding:12px;text-align:left;vertical-align:top}.rubric th{font:700 12px var(--mono);color:var(--accent);text-transform:uppercase}
+    .evidence{background:var(--deep);color:#fff;border:0}.evidence .wrap{display:grid;grid-template-columns:1.05fr repeat(4,1fr);align-items:center}.evidence .section-title{margin:0}.metric{border-left:1px solid rgba(255,255,255,.45);padding:12px 20px;text-align:center}.metric-value{font:700 36px var(--serif);color:#ff7154}.metric-label{font-size:11px;text-transform:uppercase;letter-spacing:.06em}.metric small{display:block;opacity:.75;margin-top:4px}
+    .anthropic{display:grid;grid-template-columns:.72fr 1.28fr;gap:58px}.phase-table{width:100%;border-collapse:collapse;font-size:14px}.phase-table th,.phase-table td{border-top:1px solid var(--rule);padding:12px;text-align:left}.phase-table th{font:700 12px var(--mono);color:var(--accent);text-transform:uppercase}.phase-table tfoot td{font-weight:700;color:var(--ink)}
+    .roles{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);margin-top:28px}.role{background:var(--paper);padding:22px}.role h3{font-size:25px;margin-bottom:8px}.role p{margin:0;color:var(--muted)}
+    .takeaway{display:flex;align-items:baseline;gap:28px;padding:48px 0}.take-label{font:700 13px var(--mono);color:var(--accent);padding-right:28px;border-right:1px solid var(--rule)}.takeaway h2{font-size:clamp(32px,4vw,52px)}.series-nav{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--rule)}.series-link{padding:24px 0;text-decoration:none;display:flex;gap:14px;align-items:center}.series-link:last-child{justify-content:flex-end;text-align:right}.series-link+.series-link{border-left:1px solid var(--rule);padding-left:30px}.series-link small{display:block;color:var(--muted);font:11px var(--mono);text-transform:uppercase}.series-link b{font:700 17px var(--serif)}.disabled{opacity:.48;pointer-events:none}.footer{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;padding:0 0 28px}.backtop{text-decoration:none}
+    @media(max-width:900px){.nav{display:none}.hero,.layers,.concepts,.how,.anthropic{grid-template-columns:1fr}.compare{grid-template-columns:1fr}.vs{padding:3px}.problem-grid,.why,.roles{grid-template-columns:1fr 1fr}.evidence .wrap{grid-template-columns:1fr}.evidence .section-title{text-align:center;margin-bottom:18px}.metric{border-left:0;border-top:1px solid rgba(255,255,255,.4)}}
+    @media(max-width:560px){.wrap{width:min(100% - 28px,1160px)}.head-in{height:58px}.brand{font-size:19px}.hero{padding-top:48px}.trace-grid,.trace-flow,.problem-grid,.why,.roles{grid-template-columns:1fr}.trace-flow span:after{display:none}.layer,.concept{grid-template-columns:1fr;gap:6px}.rubric,.phase-table{font-size:12px}.rubric th,.rubric td,.phase-table th,.phase-table td{padding:9px 7px}.takeaway{display:block}.take-label{display:inline-block;margin-bottom:15px}.series-nav{grid-template-columns:1fr}.series-link+.series-link{border-left:0;border-top:1px solid var(--rule);padding-left:0}.series-link:last-child{justify-content:flex-start;text-align:left}.footer{display:block}.footer a{display:block;margin-top:8px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+  </style>
+</head>
+<body>
+  <header class="site-head">
+    <div class="wrap head-in">
+      <a class="brand" href="#top">Harness Notes</a>
+      <nav class="nav" aria-label="Sections">
+        <a href="#problem">Problem</a><a href="#layers">Layers</a><a href="#concepts">Concepts</a><a href="#build">Build</a><a href="#evidence">Evidence</a>
+      </nav>
+      <button class="theme" id="theme" aria-label="Toggle dark theme"><span>Theme</span></button>
+    </div>
+  </header>
+  <main id="top">
+    <div class="wrap hero">
+      <div>
+        <div class="lecture">Lecture 11</div>
+        <h1>Making the agent's runtime observable</h1>
+        <p class="dek">Reliability is an evidence problem: the harness must expose what the system did and why the work should be accepted.</p>
+        <p class="source">Notes from <a href="https://walkinglabs.github.io/learn-harness-engineering/en/lectures/lecture-11-why-observability-belongs-inside-the-harness/">Learn Harness Engineering - Lecture 11</a></p>
+      </div>
+      <div class="trace" aria-label="Layered observability trace">
+        <div class="trace-head"><span>task_trace</span><span>runtime + process</span></div>
+        <div class="trace-grid">
+          <div class="trace-cell"><b>Runtime</b><p>logs, traces, process events, health checks</p></div>
+          <div class="trace-cell"><b>Process</b><p>plans, sprint contracts, rubrics, acceptance criteria</p></div>
+        </div>
+        <div class="trace-flow">
+          <span>Contract</span><span>Generator</span><span>Signals</span><span>Review</span><span>Verdict</span>
+        </div>
+      </div>
+    </div>
+
+    <section id="problem">
+      <div class="wrap">
+        <h2 class="section-title">Without observability, every retry is a guess.</h2>
+        <p class="lead">The agent can touch many files, run for 20 minutes, and still be unable to explain why tests fail or which critical paths changed. The harness, not the agent's memory, must preserve the evidence.</p>
+        <div class="problem-grid">
+          <div class="problem"><h3>Looks correct</h3><p>Code review shows what was written, but runtime traces show what actually ran.</p></div>
+          <div class="problem"><h3>Mystical evaluation</h3><p>Without rubrics, acceptance depends on implicit assumptions and inconsistent judgment.</p></div>
+          <div class="problem"><h3>Blind retries</h3><p>The agent fixes nearby code instead of the root cause because failure context is missing.</p></div>
+          <div class="problem"><h3>Handoff cliff</h3><p>Missing state forces the next session to rediagnose, wasting 30-50% of session time.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <h2 class="section-title">Same dark-mode task, different observability.</h2>
+        <div class="compare">
+          <div class="panel">
+            <h3>Vague loop</h3>
+            <p>Planner gives a fuzzy description. Generator guesses. Evaluator rejects with "it doesn't feel right." The cycle repeats 3-4 times.</p>
+            <div class="quote-note">About 45 minutes, barely acceptable output.</div>
+          </div>
+          <div class="vs">vs.</div>
+          <div class="panel">
+            <h3>Observable loop</h3>
+            <p>Sprint contract defines scope, standards, and exclusions. Runtime records style application. Rubric cites concrete evidence.</p>
+            <div class="quote-note">About 15 minutes, high-quality output: 3x efficiency.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="layers">
+      <div class="wrap layers">
+        <div>
+          <h2 class="section-title">Observability has two layers.</h2>
+          <p class="lead">Adding logs is not enough. Runtime signals explain behavior; process artifacts explain intent and acceptance.</p>
+        </div>
+        <div>
+          <div class="layer-map">
+            <div class="layer"><b>Runtime observability</b><div><h3>What did the system do?</h3><p>Logs, traces, process states, health checks, data flow, resources, errors, and side effects.</p></div></div>
+            <div class="layer"><b>Process observability</b><div><h3>Why should this pass?</h3><p>Plans, sprint contracts, scoring rubrics, exclusions, acceptance criteria, and evaluator decisions.</p></div></div>
+          </div>
+          <p class="loop-line">CONTRACT + SIGNALS -> REVIEW -> SPECIFIC VERDICT -> NEXT FIX</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="concepts">
+      <div class="wrap concepts">
+        <div>
+          <h2 class="section-title">Core concepts</h2>
+          <p class="lead">A good harness records enough decision context to replay what happened and why.</p>
+        </div>
+        <div class="concept-list">
+          <div class="concept"><b>Task trace</b><span>Complete decision-path record from task start to completion, like request tracing for agent work.</span></div>
+          <div class="concept"><b>Sprint contract</b><span>Short-term agreement defining scope, verification standards, and exclusions before coding starts.</span></div>
+          <div class="concept"><b>Evaluator rubric</b><span>Structured scoring that turns "is it good?" into evidence-based dimensions.</span></div>
+          <div class="concept"><b>Runtime signals</b><span>Objective system behavior: logs, traces, health, data flow, resources, exceptions.</span></div>
+          <div class="concept"><b>Layered observability</b><span>Runtime and process evidence designed together so each reinforces the other.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <h2 class="section-title">The agent cannot solve this by printing logs.</h2>
+        <div class="why">
+          <div class="why-card"><h3>Unknown unknowns</h3><p>Agents only log what they think matters. That is usually not enough.</p></div>
+          <div class="why-card"><h3>Inconsistent formats</h3><p>Different sessions produce different logs, making systematic analysis brittle.</p></div>
+          <div class="why-card"><h3>Process gaps</h3><p>Sprint contracts and rubrics are structured harness artifacts, not print statements.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="build">
+      <div class="wrap how">
+        <div>
+          <h2 class="section-title">How to build it</h2>
+          <div class="rules">
+            <div class="rule"><div><h3>Collect runtime signals automatically.</h3><p>Capture lifecycle, critical paths, data flow, resources, exceptions, and full error context.</p></div></div>
+            <div class="rule"><div><h3>Negotiate sprint contracts.</h3><p>Define scope, verification standards, and exclusions before the generator writes code.</p></div></div>
+            <div class="rule"><div><h3>Use evaluator rubrics.</h3><p>Score dimensions such as correctness, architecture, test coverage, visual design, and code quality.</p></div></div>
+            <div class="rule"><div><h3>Standardize traces.</h3><p>Use OpenTelemetry: session trace, task span, verification sub-spans, and standard attributes.</p></div></div>
+          </div>
+        </div>
+        <pre class="snippet"><code><span class="dim"># Sprint Contract: Dark Mode Support</span>
+Scope:
+- Modify theme toggle component
+- Update global CSS variables
+- Add dark mode tests
+
+Verification:
+- Visual regression tests pass
+- Main E2E flow passes
+- No flash of unstyled content
+
+Exclusions:
+- No print styles
+- No third-party dark mode</code></pre>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <h2 class="section-title">Rubrics make evaluation reproducible.</h2>
+        <p class="lead">The evaluator should cite specific evidence, not vibes. For example: "Button color contrast is insufficient: WCAG AA requires 4.5:1, measured 2.1:1."</p>
+        <table class="rubric">
+          <thead><tr><th>Dimension</th><th>A</th><th>B</th><th>C</th><th>D</th></tr></thead>
+          <tbody>
+            <tr><td>Code correctness</td><td>All tests pass</td><td>Main flow passes</td><td>Partial pass</td><td>Build fails</td></tr>
+            <tr><td>Architecture</td><td>Fully compliant</td><td>Minor deviations</td><td>Obvious deviations</td><td>Serious violations</td></tr>
+            <tr><td>Test coverage</td><td>Main + edge cases</td><td>Main flow only</td><td>Only skeleton</td><td>No tests</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="evidence" class="evidence">
+      <div class="wrap">
+        <h2 class="section-title">Observable harness data</h2>
+        <div class="metric"><div class="metric-value">45m</div><div class="metric-label">vague loop</div><small>dark-mode scenario</small></div>
+        <div class="metric"><div class="metric-value">15m</div><div class="metric-label">observable loop</div><small>3x faster</small></div>
+        <div class="metric"><div class="metric-value">30-50%</div><div class="metric-label">handoff waste</div><small>redundant diagnosis</small></div>
+        <div class="metric"><div class="metric-value">$124.70</div><div class="metric-label">Anthropic run</div><small>3 hr 50 min</small></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap anthropic">
+        <div>
+          <h2 class="section-title">Anthropic's three-agent experiment</h2>
+          <p class="lead">The DAW build made observability explicit: planner expands product context, generator works sprint by sprint, evaluator uses Playwright and scores hard thresholds.</p>
+        </div>
+        <div>
+          <table class="phase-table">
+            <thead><tr><th>Phase</th><th>Duration</th><th>Cost</th></tr></thead>
+            <tbody>
+              <tr><td>Planner</td><td>4.7 min</td><td>$0.46</td></tr>
+              <tr><td>Build round 1</td><td>2 hr 7 min</td><td>$71.08</td></tr>
+              <tr><td>QA round 1</td><td>8.8 min</td><td>$3.24</td></tr>
+              <tr><td>Build round 2</td><td>1 hr 2 min</td><td>$36.89</td></tr>
+              <tr><td>QA round 2</td><td>6.8 min</td><td>$3.09</td></tr>
+              <tr><td>Build round 3</td><td>10.9 min</td><td>$5.88</td></tr>
+              <tr><td>QA round 3</td><td>9.6 min</td><td>$4.06</td></tr>
+            </tbody>
+            <tfoot><tr><td>Total</td><td>3 hr 50 min</td><td>$124.70</td></tr></tfoot>
+          </table>
+          <div class="roles">
+            <div class="role"><h3>Planner</h3><p>Expands a short requirement into product context and high-level design.</p></div>
+            <div class="role"><h3>Generator</h3><p>Negotiates a sprint contract, implements, self-evaluates, and hands off.</p></div>
+            <div class="role"><h3>Evaluator</h3><p>Uses Playwright, checks UI/API/database behavior, and sends evidence-backed feedback.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap">
+      <div class="takeaway"><span class="take-label">TAKEAWAY</span><h2>Make the harness remember the evidence: runtime signals for what happened, process artifacts for why it passes.</h2></div>
+      <nav class="series-nav" aria-label="Lecture navigation">
+        <a class="series-link" href="lecture-10-notes.html"><span aria-hidden="true">&lt;-</span><span><small>Previous</small><b>Lecture 10 - End-to-end testing</b></span></a>
+        <a class="series-link" href="lecture-12-notes.html"><span><small>Next</small><b>Lecture 12 - Clean handoff</b></span><span aria-hidden="true">-&gt;</span></a>
+      </nav>
+    </div>
+  </main>
+  <footer class="wrap footer"><span>Concise study notes - Lecture 11</span><a class="backtop" href="#top">Back to top ^</a></footer>
+  <script>
+    const b=document.getElementById('theme');const key='harness-notes-theme';
+    if(localStorage.getItem(key)==='dark')document.body.classList.add('dark');
+    b.addEventListener('click',()=>{document.body.classList.toggle('dark');localStorage.setItem(key,document.body.classList.contains('dark')?'dark':'light')});
+  </script>
+</body>
+</html>

@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Concise notes on why only full-pipeline end-to-end testing catches component boundary defects in agent-built systems.">
+  <link rel="icon" href="data:,">
+  <title>Harness Notes - Only a Full Pipeline Run Counts as Real Verification</title>
+  <style>
+    :root{--paper:#f7f4ed;--ink:#102f3b;--muted:#5d696b;--accent:#c9442b;--green:#2b7a57;--deep:#073b49;--rule:#9ea5a2;--soft:#eee8dc;--serif:Georgia,'Times New Roman',serif;--sans:Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;--mono:'SFMono-Regular',Consolas,monospace}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.55}a{color:inherit}.wrap{width:min(1160px,calc(100% - 40px));margin:auto}.site-head{position:sticky;top:0;z-index:20;background:rgba(247,244,237,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--rule)}.head-in{height:66px;display:flex;align-items:center;gap:34px}.brand{font:700 22px var(--serif);text-decoration:none;margin-right:auto}.nav{display:flex;gap:25px}.nav a{font-size:13px;text-decoration:none;color:var(--muted)}.nav a:hover{color:var(--accent)}.theme{border:1px solid var(--ink);background:transparent;border-radius:99px;width:48px;height:25px;cursor:pointer;position:relative}.theme:after{content:"";position:absolute;width:17px;height:17px;border-radius:50%;background:var(--ink);right:3px;top:3px;transition:.2s}.theme span{display:none}h1,h2,h3{font-family:var(--serif);margin:0;letter-spacing:-.025em}section{padding:70px 0;border-top:1px solid var(--rule);scroll-margin-top:65px}code{font-family:var(--mono);font-size:.92em}
+    body.dark{--paper:#071f27;--ink:#f4ead9;--muted:#b8c2bf;--accent:#ff7154;--green:#7fc89f;--deep:#041218;--rule:#49616a;--soft:#0b2a34}.dark .site-head{background:rgba(7,31,39,.93)}.dark .theme:after{right:26px;background:var(--accent)}
+    .hero{display:grid;grid-template-columns:1fr .96fr;gap:64px;align-items:center;padding:72px 0 82px}.lecture{font:700 18px var(--serif);color:var(--accent);margin-bottom:12px}h1{font-size:clamp(50px,6.2vw,84px);line-height:.96}.dek{font:400 clamp(19px,2vw,25px) var(--serif);max-width:670px;color:var(--muted);margin:25px 0}.source{font-size:12px;color:var(--muted)}.source a{color:var(--accent);text-underline-offset:3px}
+    .pipeline{border:1px solid var(--ink);padding:24px;background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,0))}.pipe-head{display:flex;justify-content:space-between;border-bottom:1px solid var(--rule);padding-bottom:12px;margin-bottom:18px;font:700 12px var(--mono);text-transform:uppercase;color:var(--muted)}.unit-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}.unit{border:1px dashed var(--rule);padding:13px;text-align:center;font:700 12px var(--mono);color:var(--muted)}.flow{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule)}.flow span{background:var(--paper);padding:15px 10px;text-align:center;font:700 12px var(--mono);position:relative}.flow span:not(:last-child):after{content:"->";position:absolute;right:-17px;color:var(--accent);z-index:2}.pipe-note{font:700 12px var(--mono);text-align:center;color:var(--green);margin-top:15px;text-transform:uppercase}
+    .section-title{font-size:clamp(36px,4vw,56px);line-height:1.02}.lead{font:19px var(--serif);color:var(--muted);max-width:720px}.compare{display:grid;grid-template-columns:1fr auto 1fr;gap:30px;align-items:stretch;margin-top:38px}.panel{border:1px solid var(--ink);padding:26px;background:rgba(255,255,255,.12)}.panel h3{font-size:28px;margin-bottom:15px}.panel p{color:var(--muted);margin:0 0 15px}.vs{display:grid;place-items:center;font:700 18px var(--serif);color:var(--accent)}.quiet-list{padding-left:18px;margin:0}.quiet-list li{margin:8px 0;color:var(--muted)}.quote-note{border-left:4px solid var(--accent);padding:14px 18px;background:var(--soft);font-family:var(--mono);font-size:13px;color:var(--muted)}
+    .blind{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:34px}.blind-card{border-top:3px solid var(--accent);padding-top:14px}.blind-card h3{font-size:23px;margin-bottom:8px}.blind-card p{margin:0;color:var(--muted)}
+    .behavior{display:grid;grid-template-columns:.74fr 1.26fr;gap:58px}.shift-list{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule)}.shift{display:grid;grid-template-columns:70px 1fr;background:var(--paper);padding:20px;gap:18px}.shift b{font:700 18px var(--serif);color:var(--accent)}.shift h3{font-size:24px;margin-bottom:6px}.shift p{margin:0;color:var(--muted)}
+    .concepts{display:grid;grid-template-columns:.75fr 1.25fr;gap:56px}.concept-list{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule)}.concept{display:grid;grid-template-columns:210px 1fr;background:var(--paper);padding:18px}.concept b{font:700 15px var(--serif)}.concept span{color:var(--muted)}
+    .architecture{display:grid;grid-template-columns:.7fr 1.3fr;gap:58px}.layers{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);margin-bottom:22px}.layers span{background:var(--paper);padding:16px 8px;text-align:center;font:700 12px var(--mono)}.providers{border-left:4px solid var(--accent);background:var(--soft);padding:18px 22px;color:var(--muted)}.providers b{color:var(--ink)}
+    .promotion{display:grid;grid-template-columns:.85fr 1.15fr;gap:52px}.promotion-flow{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule)}.promotion-flow div{background:var(--paper);padding:18px;min-height:132px;position:relative}.promotion-flow div:not(:last-child):after{content:"->";position:absolute;right:-18px;top:50%;transform:translateY(-50%);font:700 20px var(--mono);color:var(--accent);z-index:2}.promotion-flow small{font:700 12px var(--mono);color:var(--accent)}.promotion-flow p{margin:8px 0 0;color:var(--muted)}
+    .how{display:grid;grid-template-columns:1fr 1fr;gap:52px}.rules{counter-reset:item}.rule{counter-increment:item;display:grid;grid-template-columns:44px 1fr;gap:16px;border-top:1px solid var(--rule);padding:18px 0}.rule:before{content:counter(item,decimal-leading-zero);font:700 13px var(--mono);color:var(--accent)}.rule h3{font-size:24px}.rule p{margin:5px 0 0;color:var(--muted)}.snippet{background:var(--deep);color:#f7f4ed;padding:24px;font-family:var(--mono);font-size:13px;overflow:auto;line-height:1.45}.snippet .dim{color:#9fc0bd}.snippet .ok{color:#9ee0ad}.snippet .warn{color:#ff987f}
+    .defects{width:100%;border-collapse:collapse;margin-top:34px;font-size:14px}.defects th,.defects td{border-top:1px solid var(--rule);padding:13px 12px;text-align:left;vertical-align:top}.defects th{font:700 12px var(--mono);color:var(--accent);text-transform:uppercase}.defects td:nth-child(3),.defects td:nth-child(4){font:700 12px var(--mono);text-transform:uppercase}.missed{color:var(--accent)}.caught{color:var(--green)}
+    .evidence{background:var(--deep);color:#fff;border:0}.evidence .wrap{display:grid;grid-template-columns:1.08fr repeat(4,1fr);align-items:center}.evidence .section-title{margin:0}.metric{border-left:1px solid rgba(255,255,255,.45);padding:12px 20px;text-align:center}.metric-value{font:700 36px var(--serif);color:#ff7154}.metric-label{font-size:11px;text-transform:uppercase;letter-spacing:.06em}.metric small{display:block;opacity:.75;margin-top:4px}
+    .takeaway{display:flex;align-items:baseline;gap:28px;padding:48px 0}.take-label{font:700 13px var(--mono);color:var(--accent);padding-right:28px;border-right:1px solid var(--rule)}.takeaway h2{font-size:clamp(32px,4vw,52px)}.series-nav{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--rule)}.series-link{padding:24px 0;text-decoration:none;display:flex;gap:14px;align-items:center}.series-link:last-child{justify-content:flex-end;text-align:right}.series-link+.series-link{border-left:1px solid var(--rule);padding-left:30px}.series-link small{display:block;color:var(--muted);font:11px var(--mono);text-transform:uppercase}.series-link b{font:700 17px var(--serif)}.disabled{opacity:.48;pointer-events:none}.footer{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;padding:0 0 28px}.backtop{text-decoration:none}
+    @media(max-width:900px){.nav{display:none}.hero,.behavior,.concepts,.architecture,.promotion,.how{grid-template-columns:1fr}.compare{grid-template-columns:1fr}.vs{padding:3px}.blind{grid-template-columns:1fr 1fr}.promotion-flow{grid-template-columns:1fr}.promotion-flow div:after{display:none}.layers{grid-template-columns:repeat(3,1fr)}.evidence .wrap{grid-template-columns:1fr}.evidence .section-title{text-align:center;margin-bottom:18px}.metric{border-left:0;border-top:1px solid rgba(255,255,255,.4)}}
+    @media(max-width:560px){.wrap{width:min(100% - 28px,1160px)}.head-in{height:58px}.brand{font-size:19px}.hero{padding-top:48px}.unit-row,.flow,.blind,.layers{grid-template-columns:1fr}.flow span:after{display:none}.shift,.concept{grid-template-columns:1fr;gap:6px}.defects{font-size:12px}.defects th,.defects td{padding:10px 7px}.takeaway{display:block}.take-label{display:inline-block;margin-bottom:15px}.series-nav{grid-template-columns:1fr}.series-link+.series-link{border-left:0;border-top:1px solid var(--rule);padding-left:0}.series-link:last-child{justify-content:flex-start;text-align:left}.footer{display:block}.footer a{display:block;margin-top:8px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+  </style>
+</head>
+<body>
+  <header class="site-head">
+    <div class="wrap head-in">
+      <a class="brand" href="#top">Harness Notes</a>
+      <nav class="nav" aria-label="Sections">
+        <a href="#problem">Problem</a><a href="#behavior">Behavior</a><a href="#concepts">Concepts</a><a href="#rules">Rules</a><a href="#case">Case</a>
+      </nav>
+      <button class="theme" id="theme" aria-label="Toggle dark theme"><span>Theme</span></button>
+    </div>
+  </header>
+  <main id="top">
+    <div class="wrap hero">
+      <div>
+        <div class="lecture">Lecture 10</div>
+        <h1>Only a full pipeline run counts as real verification</h1>
+        <p class="dek">Unit tests prove isolated parts. End-to-end tests prove the parts still work after they are wired together.</p>
+        <p class="source">Notes from <a href="https://walkinglabs.github.io/learn-harness-engineering/en/lectures/lecture-10-why-end-to-end-testing-changes-results/">Learn Harness Engineering - Lecture 10</a></p>
+      </div>
+      <div class="pipeline" aria-label="Unit tests compared with end-to-end pipeline">
+        <div class="pipe-head"><span>export_feature</span><span>full pipeline</span></div>
+        <div class="unit-row">
+          <div class="unit">Renderer tests</div>
+          <div class="unit">Preload tests</div>
+          <div class="unit">Service tests</div>
+        </div>
+        <div class="flow">
+          <span>Click button</span><span>Preload bridge</span><span>Service layer</span><span>File system</span><span>Exported file</span>
+        </div>
+        <p class="pipe-note">Only the bottom path observes the real system</p>
+      </div>
+    </div>
+
+    <section id="problem">
+      <div class="wrap">
+        <h2 class="section-title">The defect lives between components.</h2>
+        <p class="lead">In the Electron export example, the renderer, preload script, and service layer each pass unit tests. The first real click exposes wrong path format, stuck progress, memory leakage, permission differences, and missing error propagation.</p>
+        <div class="compare">
+          <div class="panel">
+            <h3>Unit-test view</h3>
+            <p>Fast, precise, and isolated. Useful for local logic, but blind to the contracts between mocked components.</p>
+            <div class="quote-note">Every component looks correct on its own.</div>
+          </div>
+          <div class="vs">vs.</div>
+          <div class="panel">
+            <h3>E2E view</h3>
+            <p>Slower, but it exercises the real path through UI, bridge, service, operating system, and side effects.</p>
+            <div class="quote-note">Only end-to-end testing can prove absence of system-level defects.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <h2 class="section-title">Unit tests have systematic blind spots.</h2>
+        <p class="lead">Isolation is the design philosophy that makes unit tests fast. It is also why they cannot catch defects created by wiring, shared state, real resources, or environment differences.</p>
+        <div class="blind">
+          <div class="blind-card"><h3>Interface mismatch</h3><p>Renderer sends a relative file path while preload expects an absolute path.</p></div>
+          <div class="blind-card"><h3>State propagation</h3><p>Schema changes but cached ORM entries still reflect the old table shape.</p></div>
+          <div class="blind-card"><h3>Resource lifecycle</h3><p>File handles, database connections, and sockets leak across component boundaries.</p></div>
+          <div class="blind-card"><h3>Environment dependency</h3><p>Mocked tests hide configuration, latency, permissions, and service availability.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="behavior">
+      <div class="wrap behavior">
+        <div>
+          <h2 class="section-title">E2E tests change how agents write code.</h2>
+          <p class="lead">The lecture's overlooked point: when agents know the real flow will be run, they stop optimizing for the fastest green check and start respecting integration pressure.</p>
+        </div>
+        <div class="shift-list">
+          <div class="shift"><b>01</b><div><h3>Component interactions</h3><p>The agent asks how this interface connects upstream and downstream.</p></div></div>
+          <div class="shift"><b>02</b><div><h3>Architectural boundaries</h3><p>Executable tests force the agent to follow boundary rules instead of copying bad local patterns.</p></div></div>
+          <div class="shift"><b>03</b><div><h3>Error paths</h3><p>Failure scenarios push exception handling, UI feedback, and propagation into the implementation.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="concepts">
+      <div class="wrap concepts">
+        <div>
+          <h2 class="section-title">Core concepts</h2>
+          <p class="lead">Remember the gradient: each wider test layer catches a larger class of defects.</p>
+        </div>
+        <div class="concept-list">
+          <div class="concept"><b>Component boundary defects</b><span>Each component passes alone, but the interaction between A and B fails.</span></div>
+          <div class="concept"><b>Testing adequacy gradient</b><span>Unit-detectable defects <= integration-detectable defects <= E2E-detectable defects.</span></div>
+          <div class="concept"><b>Executable architecture</b><span>Architecture rules become lint checks or tests that fail automatically.</span></div>
+          <div class="concept"><b>Review promotion</b><span>Recurring review feedback becomes a permanent automated check.</span></div>
+          <div class="concept"><b>Agent-oriented errors</b><span>Failure messages include what went wrong, why it matters, and exactly how to fix it.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="rules">
+      <div class="wrap architecture">
+        <div>
+          <h2 class="section-title">Define boundaries before E2E.</h2>
+          <p class="lead">Without architectural intent, a full-pipeline run only proves that the whole mess runs. For agent-built codebases, constraints need to exist on day one because agents copy existing patterns.</p>
+        </div>
+        <div>
+          <div class="layers" aria-label="Layered domain architecture">
+            <span>Types</span><span>Config</span><span>Repo</span><span>Service</span><span>Runtime</span><span>UI</span>
+          </div>
+          <p class="providers"><b>Rule:</b> dependencies flow forward through fixed layers. Cross-domain concerns enter through explicit provider interfaces. Any other dependency is forbidden and mechanically enforced.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap promotion">
+        <div>
+          <h2 class="section-title">Promote review feedback into the harness.</h2>
+          <p class="lead">A repeated review comment should not stay a comment. Turn it into a check with an error message that teaches the agent how to repair the violation.</p>
+        </div>
+        <div class="promotion-flow" aria-label="Review feedback promotion">
+          <div><small>01</small><p>Review finds: renderer imports <code>fs</code> directly.</p></div>
+          <div><small>02</small><p>Add a direct filesystem import check.</p></div>
+          <div><small>03</small><p>Error explains how to move access to preload.</p></div>
+          <div><small>04</small><p>Harness runs the check automatically.</p></div>
+          <div><small>05</small><p>Next violation fails immediately.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap how">
+        <div>
+          <h2 class="section-title">How to apply it</h2>
+          <div class="rules">
+            <div class="rule"><div><h3>Require E2E for cross-component work.</h3><p>Validation hierarchy: unit, integration, then E2E when multiple components change.</p></div></div>
+            <div class="rule"><div><h3>Automate architecture rules.</h3><p>Convert constraints such as "renderer must not access filesystem" into lint or test checks.</p></div></div>
+            <div class="rule"><div><h3>Write repair instructions.</h3><p>Failure messages need what, why, and fix steps so the agent can self-correct.</p></div></div>
+            <div class="rule"><div><h3>Grow the harness from reviews.</h3><p>Every recurring defect category becomes a new permanent automated check.</p></div></div>
+          </div>
+        </div>
+        <pre class="snippet"><code><span class="warn">ERROR:</span> Found direct import of 'fs' in src/renderer/App.tsx:12
+<span class="dim">WHY:</span> Renderer process has no access to Node.js APIs for security
+<span class="ok">FIX:</span> Move file operations to src/preload/file-ops.ts
+     and call via window.api.readFile()</code></pre>
+      </div>
+    </section>
+
+    <section id="case">
+      <div class="wrap">
+        <h2 class="section-title">Electron export case: E2E caught all five.</h2>
+        <p class="lead">Unit tests for renderer, preload, and service all passed. The end-to-end flow found every system-level defect.</p>
+        <table class="defects">
+          <thead><tr><th>Defect</th><th>Description</th><th>Unit</th><th>E2E</th></tr></thead>
+          <tbody>
+            <tr><td>Interface mismatch</td><td>Inconsistent file path format.</td><td class="missed">Missed</td><td class="caught">Caught</td></tr>
+            <tr><td>State propagation</td><td>Export progress not sent back to UI via IPC.</td><td class="missed">Missed</td><td class="caught">Caught</td></tr>
+            <tr><td>Resource leak</td><td>Large file export handles not released.</td><td class="missed">Missed</td><td class="caught">Caught</td></tr>
+            <tr><td>Permission issue</td><td>Different permissions in packaged environment.</td><td class="missed">Missed</td><td class="caught">Caught</td></tr>
+            <tr><td>Error propagation</td><td>Service layer exceptions did not reach UI layer.</td><td class="missed">Missed</td><td class="caught">Caught</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="evidence">
+      <div class="wrap">
+        <h2 class="section-title">Runtime tradeoff</h2>
+        <div class="metric"><div class="metric-value">5</div><div class="metric-label">defects</div><small>caught by E2E</small></div>
+        <div class="metric"><div class="metric-value">0</div><div class="metric-label">defects</div><small>caught by unit tests</small></div>
+        <div class="metric"><div class="metric-value">2s</div><div class="metric-label">unit phase</div><small>fast but incomplete</small></div>
+        <div class="metric"><div class="metric-value">15s</div><div class="metric-label">E2E phase</div><small>acceptable for agents</small></div>
+      </div>
+    </section>
+
+    <div class="wrap">
+      <div class="takeaway"><span class="take-label">TAKEAWAY</span><h2>Run the real path: UI to bridge to service to side effect, with architecture checks that teach the repair.</h2></div>
+      <nav class="series-nav" aria-label="Lecture navigation">
+        <a class="series-link" href="lecture-09-notes.html"><span aria-hidden="true">&lt;-</span><span><small>Previous</small><b>Lecture 09 - Completion gates</b></span></a>
+        <a class="series-link" href="lecture-11-notes.html"><span><small>Next</small><b>Lecture 11 - Observability</b></span><span aria-hidden="true">-&gt;</span></a>
+      </nav>
+    </div>
+  </main>
+  <footer class="wrap footer"><span>Concise study notes - Lecture 10</span><a class="backtop" href="#top">Back to top ^</a></footer>
+  <script>
+    const b=document.getElementById('theme');const key='harness-notes-theme';
+    if(localStorage.getItem(key)==='dark')document.body.classList.add('dark');
+    b.addEventListener('click',()=>{document.body.classList.toggle('dark');localStorage.setItem(key,document.body.classList.contains('dark')?'dark':'light')});
+  </script>
+</body>
+</html>
